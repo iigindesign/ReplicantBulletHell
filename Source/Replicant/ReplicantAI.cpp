@@ -26,11 +26,8 @@ AReplicantAI::AReplicantAI()
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ReplicantStaticMesh"));
 	StaticMesh->SetupAttachment(RootComponent);
 
-	AgroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AgroSphere"));
-	AgroSphere->SetupAttachment(RootComponent);
-
-	AttackSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AttackSphere"));
-	AttackSphere->SetupAttachment(RootComponent);
+	AggroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AggroSphere"));
+	AggroSphere->SetupAttachment(RootComponent);
 }
 
 void AReplicantAI::PostInitializeComponents()
@@ -70,28 +67,26 @@ void AReplicantAI::BeginPlay()
 
 
 	//TODO: look into unreal delegates!
-	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AReplicantAI::AgroSphereBeginOverlap);
-	AgroSphere->OnComponentEndOverlap.AddDynamic(this, &AReplicantAI::AgroSphereEndOverlap);
-	AttackSphere->OnComponentBeginOverlap.AddDynamic(this, &AReplicantAI::AttackSphereBeginOverlap);
-	AttackSphere->OnComponentEndOverlap.AddDynamic(this, &AReplicantAI::AttackSphereEndOverlap);
+	AggroSphere->OnComponentBeginOverlap.AddDynamic(this, &AReplicantAI::AggroSphereBeginOverlap);
+	AggroSphere->OnComponentEndOverlap.AddDynamic(this, &AReplicantAI::AggroSphereEndOverlap);
 }
 
 // Called every frame
 void AReplicantAI::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	DrawDebugSphere(GetWorld(), GetActorLocation(), AgroSphere->GetScaledSphereRadius(), 12, FColor::Red, false, 0.1);
+	DrawDebugSphere(GetWorld(), GetActorLocation(), AggroSphere->GetScaledSphereRadius(), 12, FColor::Red, false, 0.1);
 	if (TargetActors.Num() > 1) {
 		SetTarget(FindClosestActor(TargetActors));
 	}
 }
 
-void AReplicantAI::AgroSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AReplicantAI::AggroSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ConnectReplicantCharacterTarget(OtherActor, true);
 }
 
-void AReplicantAI::AgroSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AReplicantAI::AggroSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	ConnectReplicantCharacterTarget(OtherActor, false);
 }

@@ -27,20 +27,17 @@ public:
 	class AReplicantAIController* AIController;
 
 	UPROPERTY(VisibleAnywhere, Category = "BehaviorTree")
-	class USphereComponent* AgroSphere; 
-
-	UPROPERTY(VisibleAnywhere, Category = "BehaviorTree")
-	class USphereComponent* AttackSphere;
+	class USphereComponent* AggroSphere; 
 
 	//TODO: TArray<TObjectPtr<AActor>> MoveIgnoreActors; ?? theres a addunique for this array type
 	// TArray<AActor*> TargetActors;
 	TArray<TObjectPtr<AActor>> TargetActors;
 
 	UFUNCTION()
-	void AgroSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void AggroSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void AgroSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void AggroSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
 	void AttackSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

@@ -2,7 +2,7 @@
 
 
 #include "ReplicantProjectile.h"
-#include "Components/SphereComponent.h"
+#include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "GameFramework/DamageType.h"
@@ -17,23 +17,28 @@ AReplicantProjectile::AReplicantProjectile()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
-	//Definition for the SphereComponent that will serve as the Root component for the projectile and its collision.
-	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereRootComponent"));
-	SphereComponent->InitSphereRadius(15.5f);
-	SphereComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	RootComponent = SphereComponent;
+	////definition for the spherecomponent that will serve as the root component for the projectile and its collision.
+	//spherecomponent = createdefaultsubobject<uspherecomponent>(text("sphererootcomponent"));
+	//spherecomponent->initsphereradius(15.5f);
+	//spherecomponent->setcollisionprofilename(text("overlapalldynamic"));
+	//rootcomponent = spherecomponent;
+
+	ProjectileRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = ProjectileRoot;
 
 	//Definition for the Mesh that will serve as your visual representation.
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	StaticMesh->SetupAttachment(RootComponent);
+	StaticMesh->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	StaticMesh->SetGenerateOverlapEvents(true);
 
-	//hard coding transformation of shape sphere
-	StaticMesh->SetRelativeLocation(FVector(0.0f, 0.0f, -37.5f));
-	StaticMesh->SetRelativeScale3D(FVector(0.75f, 0.75f, 0.75f));
+	////hard coding transformation of shape sphere
+	//StaticMesh->SetRelativeLocation(FVector(0.0f, 0.0f, -37.5f));
+	//StaticMesh->SetRelativeScale3D(FVector(0.75f, 0.75f, 0.75f));
 
 	//Definition for the Projectile Movement Component.
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovementComponent->SetUpdatedComponent(SphereComponent);
+	ProjectileMovementComponent->SetUpdatedComponent(ProjectileRoot);
 	ProjectileMovementComponent->InitialSpeed = 1500.0f;
 	ProjectileMovementComponent->MaxSpeed = 1500.0f;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
@@ -46,7 +51,7 @@ AReplicantProjectile::AReplicantProjectile()
 	//Registering the Projectile Impact function on a Hit event.
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AReplicantProjectile::OnProjectileImpact);
+		StaticMesh->OnComponentBeginOverlap.AddDynamic(this, &AReplicantProjectile::OnProjectileImpact);
 	}
 }
 

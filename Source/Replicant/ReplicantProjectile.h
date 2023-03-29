@@ -15,12 +15,13 @@ public:
 	// Sets default values for this actor's properties
 	AReplicantProjectile();  
 
-    // Sphere component used to test collision.
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Components)
-    class USphereComponent* SphereComponent;
+    // Static Mesh used to provide a visual representation of the object.
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Components)
+    class USceneComponent* ProjectileRoot;
+
 
     // Static Mesh used to provide a visual representation of the object.
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Components)
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Components)
     class UStaticMeshComponent* StaticMesh;
 
     // Movement component for handling projectile movement. REPLICATED?
