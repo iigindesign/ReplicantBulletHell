@@ -6,7 +6,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
-#include "Components/StaticMeshComponent.h"
 #include "ReplicantAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/SphereComponent.h"
@@ -22,9 +21,6 @@ AReplicantAI::AReplicantAI()
 	ProjectileSpawner = CreateDefaultSubobject<UReplicantProjectileSpawnerComp>(TEXT("ProjectileSpawner"));
 	ProjectileSpawner->SetupAttachment(RootComponent);
 	ProjectileSpawner->SetIsReplicated(true);
-
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ReplicantStaticMesh"));
-	StaticMesh->SetupAttachment(RootComponent);
 
 	AggroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AggroSphere"));
 	AggroSphere->SetupAttachment(RootComponent);

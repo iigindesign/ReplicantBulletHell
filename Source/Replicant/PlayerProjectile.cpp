@@ -3,7 +3,7 @@
 
 #include "PlayerProjectile.h"
 #include "Kismet/GameplayStatics.h"
-#include "ReplicantCharacter.h"
+#include "ReplicantPlayerCharacter.h"
 #include "ReplicantAI.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
@@ -25,7 +25,7 @@ void APlayerProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedCompon
 	}
 	if (OtherActor)
 	{
-		if (Cast<AReplicantCharacter>(OtherActor) || Cast<APlayerProjectile>(OtherActor))
+		if (Cast<AReplicantPlayerCharacter>(OtherActor) || Cast<APlayerProjectile>(OtherActor))
 		{
 			return;
 		}
@@ -33,14 +33,13 @@ void APlayerProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedCompon
 		{
 			DestroyedEffect = ExplosionEffect;
 
-			// UGameplayStatics::ApplyPointDamage(OtherActor, Damage, OtherActor->GetActorForwardVector(), SweepResult, GetInstigator()->Controller, this, DamageType);
+			UGameplayStatics::ApplyPointDamage(OtherActor, Damage, OtherActor->GetActorForwardVector(), SweepResult, GetInstigator()->Controller, this, DamageType);
 		}
 		else
 		{
 			DestroyedEffect = nullptr;
 		}
 	}
-
 
 	Destroy();
 }

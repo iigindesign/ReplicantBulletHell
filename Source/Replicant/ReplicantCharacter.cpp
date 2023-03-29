@@ -26,7 +26,7 @@ AReplicantCharacter::AReplicantCharacter()
 	bIsImmortal = true;
 
 	//Definition for the Mesh that will serve as your visual representation.
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ReplicantStaticMesh"));
 	StaticMesh->SetupAttachment(RootComponent);
 }
 

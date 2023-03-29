@@ -19,7 +19,7 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// Static Mesh used to provide a visual representation of the object.
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Components)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Components)
 	class UStaticMeshComponent* StaticMesh;
 
 protected:				

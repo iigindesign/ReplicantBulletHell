@@ -3,7 +3,7 @@
 
 #include "AIProjectile.h"
 #include "Kismet/GameplayStatics.h"
-#include "ReplicantCharacter.h"
+#include "ReplicantPlayerCharacter.h"
 #include "ReplicantAI.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
@@ -18,7 +18,7 @@ void AAIProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedComponent,
 			return;
 		}
 		// This calls TakeDamage() on the actor it collided with
-		if (Cast<AReplicantCharacter>(OtherActor))
+		if (Cast<AReplicantPlayerCharacter>(OtherActor))
 		{
 			AReplicantAI* AIOwner = Cast<AReplicantAI>(GetOwner());
 			if (AIOwner)

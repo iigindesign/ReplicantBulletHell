@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "ReplicantCharacter.h"
 #include "ReplicantAI.generated.h"
 
 UCLASS()
-class REPLICANT_API AReplicantAI : public ACharacter
+class REPLICANT_API AReplicantAI : public AReplicantCharacter
 {
 	GENERATED_BODY()
 
@@ -17,9 +18,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Pawn")
 	class UBehaviorTree* BehaviorTree;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	class UStaticMeshComponent* StaticMesh;
 	
 	// Set in BP with BP_ReplicantAIController
 	// Pawn has a built in attribute called AI Controller Class...
