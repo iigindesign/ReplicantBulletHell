@@ -30,9 +30,10 @@ void AReplicantAI::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	// TODO: THIS IS VERY JANK. NEED TO FIND BETTER SOLUTION TO ONLY CONSTRUCT THIS COMPONENT ON SERVER
-	if (!HasAuthority())
+	// This results in client destroy message in output log
+	if (HasAuthority())
 	{
-		ProjectileSpawner->DestroyComponent();
+		ProjectileSpawner->bCanSpawnProjectile = true;
 	}
 }
 

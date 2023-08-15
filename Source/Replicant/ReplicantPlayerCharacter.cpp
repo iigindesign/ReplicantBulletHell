@@ -13,6 +13,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "ReplicantProjectile.h"
 
+#include "Ability/BlastDeflectAbility.h"
+
 AReplicantPlayerCharacter::AReplicantPlayerCharacter()
 {
 	// Don't rotate when the controller rotates. Let that just affect the camera.
@@ -27,7 +29,7 @@ AReplicantPlayerCharacter::AReplicantPlayerCharacter()
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	// GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -103,6 +105,7 @@ void AReplicantPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Playe
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AReplicantPlayerCharacter::Move);
 
 		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &AReplicantPlayerCharacter::StartFire);
+		EnhancedInputComponent->BindAction(BlastDeflectAction, ETriggerEvent::Triggered, this, &AReplicantPlayerCharacter::StartAbility);
 	}
 }
 
@@ -127,5 +130,38 @@ void AReplicantPlayerCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
+
+}
+
+void AReplicantPlayerCharacter::StartAbility()
+{
+	if (!bIsUsingAbility)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Ability CHECKED!"));
+		bIsUsingAbility = true;
+		UWorld* World = GetWorld();
+		World->GetTimerManager().SetTimer(AbilityTimer, this, &AReplicantPlayerCharacter::StopAbility, FireRate, false);
+		HandleAbility();
+	}
+}
+
+void AReplicantPlayerCharacter::StopAbility()
+{
+	bIsUsingAbility = false;
+}
+
+
+void AReplicantPlayerCharacter::HandleAbility_Implementation()
+{
+	FVector spawnLocation = GetActorLocation() + (GetActorRotation().Vector() * 100.0f) + (GetActorUpVector() * 50.0f);
+	FRotator spawnRotation = GetActorRotation();
+
+	FActorSpawnParameters spawnParameters;
+	//Instigator is the actor causing this to happen       
+	spawnParameters.Instigator = GetInstigator();
+	//Owner is the Controller Class that spawned the instigator
+	spawnParameters.Owner = this;
+
+	ABlastDeflectAbility* spawnedAbility = GetWorld()->SpawnActor<ABlastDeflectAbility>(AbilityClass, spawnLocation, spawnRotation, spawnParameters);
 
 }

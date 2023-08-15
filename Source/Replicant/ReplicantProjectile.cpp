@@ -16,6 +16,7 @@ AReplicantProjectile::AReplicantProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+	SetReplicateMovement(true);
 
 	////definition for the spherecomponent that will serve as the root component for the projectile and its collision.
 	//spherecomponent = createdefaultsubobject<uspherecomponent>(text("sphererootcomponent"));
@@ -79,7 +80,6 @@ void AReplicantProjectile::Destroyed()
 	}
 }
 
-// TODO: NEED TO FIGURE OUT AI CONTROLLER is this an implicit RPC?
 void AReplicantProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -99,4 +99,13 @@ void AReplicantProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedCom
 	
 
 	Destroy();
+}
+
+void AReplicantProjectile::SetProjectileVelocity_Implementation(FVector NewVelocity)
+{
+	if (ProjectileMovementComponent)
+	{
+		ProjectileMovementComponent->Velocity = NewVelocity;
+		ProjectileMovementComponent->UpdateComponentVelocity();
+	}
 }

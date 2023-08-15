@@ -13,7 +13,7 @@ UReplicantProjectileSpawnerComp::UReplicantProjectileSpawnerComp()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	bCanSpawnProjectile = false;
 	// ...
 }
 
@@ -21,6 +21,10 @@ UReplicantProjectileSpawnerComp::UReplicantProjectileSpawnerComp()
 void UReplicantProjectileSpawnerComp::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!bCanSpawnProjectile) 
+	{
+		return;
+	}
 	// TODO:
 	// putting here for now, but the number of spawners and rotation should be able to be changed dynamically at runtime
 

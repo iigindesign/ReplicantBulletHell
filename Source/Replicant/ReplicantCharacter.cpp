@@ -24,10 +24,6 @@ AReplicantCharacter::AReplicantCharacter()
 	MaxHealth = 100.0f;
 	CurrentHealth = MaxHealth;
 	bIsImmortal = true;
-
-	//Definition for the Mesh that will serve as your visual representation.
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ReplicantStaticMesh"));
-	StaticMesh->SetupAttachment(RootComponent);
 }
 
 // Replicated Properties

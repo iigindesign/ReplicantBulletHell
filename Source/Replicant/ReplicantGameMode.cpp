@@ -9,12 +9,7 @@
 
 AReplicantGameMode::AReplicantGameMode()
 {
-	//// set default pawn class to our Blueprinted character
-	//static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Replicant/ReplicantCharacter_BP"));
-	//if (PlayerPawnBPClass.Class != NULL)
-	//{
-	//	DefaultPawnClass = PlayerPawnBPClass.Class;
-	//}
+// player bp set in gamemode blueprint
 }
 
 void AReplicantGameMode::BeginPlay()
@@ -25,14 +20,14 @@ void AReplicantGameMode::BeginPlay()
 	}
 }
 
-// Lyra spawns using a gamestate component, do we even need to check for auth if spawning from gamemode?
+// Lyra spawns using a gamestate component, don't need to check authority if spawning from gamemode
 void AReplicantGameMode::ServerCreateBots()
 {
 	if (BotControllerClass == nullptr)
 	{
 		return;
 	}
-	SpawnOneBot();
+	// SpawnOneBot();
 }
 
 void AReplicantGameMode::SpawnOneBot()

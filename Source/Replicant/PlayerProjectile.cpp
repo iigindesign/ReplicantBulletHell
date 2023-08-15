@@ -9,6 +9,7 @@
 #include "GameFramework/Pawn.h"
 #include "Components/SphereComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "AIProjectile.h"
 
 //TODO: NEED TO FIGURE OUT BETTER SYSTEM TO ACCOUNT FOR PROJECTILE TYPE IGNORANCE
@@ -17,8 +18,9 @@ void APlayerProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedCompon
 {
 	if (OtherComp)
 	{
-		//TODO: very jank way to skip aggro sphere detection...possibly make the sphere component into another C++ class
-		if (Cast<USphereComponent>(OtherComp))
+		//TODO: this prob should be in a data class
+		FName IgnoreProjectileTag = "IgnoreProjectile";
+		if (OtherComp->ComponentHasTag(IgnoreProjectileTag))
 		{
 			return;
 		}

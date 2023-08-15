@@ -29,16 +29,21 @@ class REPLICANT_API AReplicantPlayerCharacter : public AReplicantCharacter
 	UPROPERTY(EditAnywhere, Category = "Gameplay")
 	TSubclassOf<class AReplicantProjectile> ProjectileClass;
 
+	UPROPERTY(EditAnywhere, Category = "Gameplay")
+	TSubclassOf<class ABlastDeflectAbility> AbilityClass;
+
 public:
 	AReplicantPlayerCharacter();
 
-	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
 
-	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ShootAction;
+
+	/** Move Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* BlastDeflectAction;
 
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -50,10 +55,16 @@ protected:
 
 	/** A timer handle used for providing the fire rate delay in-between spawns.*/
 	FTimerHandle FiringTimer;
+	/** A timer handle used for providing the fire rate delay in-between spawns.*/
+	FTimerHandle AbilityTimer;
 
 	/** Server function for spawning projectiles.*/
 	UFUNCTION(Server, Reliable)
 	void HandleFire();
+
+	/** Server function for spawning projectiles.*/
+	UFUNCTION(Server, Reliable)
+	void HandleAbility();
 
 	/** Function for beginning weapon fire.*/
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
@@ -70,10 +81,21 @@ protected:
 	/** If true, you are in the process of firing projectiles. */
 	bool bIsFiringWeapon;
 
+	/** If true, you are in the process of firing projectiles. */
+	bool bIsUsingAbility;
+
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
+	void Move          (const FInputActionValue& Value);
+
+	/** Function for beginning weapon fire.*/
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	void StartAbility();
+
+	/** Function for ending weapon fire. Once this is called, the player can use StartFire again. */
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	void StopAbility();
 
 };
