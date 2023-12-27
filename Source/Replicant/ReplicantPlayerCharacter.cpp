@@ -11,7 +11,9 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+
 #include "ReplicantProjectile.h"
+#include "ReplicantCosmeticProjectile.h"
 
 #include "Ability/BlastDeflectAbility.h"
 
@@ -47,6 +49,9 @@ AReplicantPlayerCharacter::AReplicantPlayerCharacter()
 	//Initialize fire rateStaticCl
 	FireRate = 0.1f;
 	bIsFiringWeapon = false;
+
+	ProjectileSpawnHorizontalOffset = 100.0f;
+	ProjectileSpawnVerticalOffset = 50.0f;
 }
 
 void AReplicantPlayerCharacter::BeginPlay()
@@ -67,16 +72,46 @@ void AReplicantPlayerCharacter::BeginPlay()
 
 void AReplicantPlayerCharacter::HandleFire_Implementation()
 {
-	FVector spawnLocation = GetActorLocation() + (GetActorRotation().Vector() * 100.0f) + (GetActorUpVector() * 50.0f);
+	// TODO: refactor out the spawn parameter logic to its own shared method with spawncosmetic?
+	// TODO: have the cosmetic and player projectile share an abstract projectile parent?
+	HandleFireMulticast();
+}
+
+void AReplicantPlayerCharacter::SpawnProjectile()
+{
+	FVector spawnLocation = GetActorLocation() + (GetActorRotation().Vector() * ProjectileSpawnHorizontalOffset) + (GetActorUpVector() * ProjectileSpawnVerticalOffset);
 	FRotator spawnRotation = GetActorRotation();
 
 	FActorSpawnParameters spawnParameters;
-	//Instigator is the actor causing this to happen       
+	//Instigator is the actor Class causing this to happen       
 	spawnParameters.Instigator = GetInstigator();
-	//Owner is the Controller Class that spawned the instigator
+	//Owner is the Controller that spawned the instigator
 	spawnParameters.Owner = this;
 
 	AReplicantProjectile* spawnedProjectile = GetWorld()->SpawnActor<AReplicantProjectile>(ProjectileClass, spawnLocation, spawnRotation, spawnParameters);
+}
+
+void AReplicantPlayerCharacter::SpawnCosmeticProjectile()
+{
+	FVector spawnLocation = GetActorLocation() + (GetActorRotation().Vector() * ProjectileSpawnHorizontalOffset) + (GetActorUpVector() * ProjectileSpawnVerticalOffset);
+	FRotator spawnRotation = GetActorRotation();
+
+	FActorSpawnParameters spawnParameters;
+	//Instigator is the actor Class causing this to happen       
+	spawnParameters.Instigator = GetInstigator();
+	//Owner is the Controller  that spawned the instigator
+	spawnParameters.Owner = this;
+
+	AReplicantCosmeticProjectile* spawnedProjectile = GetWorld()->SpawnActor<AReplicantCosmeticProjectile>(CosmeticProjectileClass, spawnLocation, spawnRotation, spawnParameters);
+}
+
+void AReplicantPlayerCharacter::HandleFireMulticast_Implementation()
+{
+	if (GetLocalRole() == ROLE_AutonomousProxy) // Spawn for the server and all simulated proxies
+	{
+		return;
+	}
+	SpawnProjectile();
 }
 
 void AReplicantPlayerCharacter::StartFire()
@@ -87,7 +122,9 @@ void AReplicantPlayerCharacter::StartFire()
 		bIsFiringWeapon = true;
 		UWorld* World = GetWorld();
 		World->GetTimerManager().SetTimer(FiringTimer, this, &AReplicantPlayerCharacter::StopFire, FireRate, false);
-		HandleFire();
+
+		SpawnCosmeticProjectile(); // TODO: THIS IS THE ONLY PROJECTILE TO ADD INERTIA TO ... 
+		HandleFire(); // Server
 	}
 }
 
@@ -165,3 +202,17 @@ void AReplicantPlayerCharacter::HandleAbility_Implementation()
 	ABlastDeflectAbility* spawnedAbility = GetWorld()->SpawnActor<ABlastDeflectAbility>(AbilityClass, spawnLocation, spawnRotation, spawnParameters);
 
 }
+
+//void AReplicantProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+//	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+//{
+//	if (OtherActor && OtherActor != this)
+//	{
+//		if (GetInstigator())
+//		{
+//			// This calls TakeDamage() on the actor it collided with
+//			UGameplayStatics::ApplyPointDamage(OtherActor, Damage, OtherActor->GetActorForwardVector(), SweepResult, GetInstigator()->Controller, this, DamageType);
+//		}
+//		Destroy();
+//	}
+//}

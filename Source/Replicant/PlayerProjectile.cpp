@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "PlayerProjectile.h"
 #include "Kismet/GameplayStatics.h"
 #include "ReplicantPlayerCharacter.h"
@@ -11,6 +8,57 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AIProjectile.h"
+
+
+// Sets default values
+APlayerProjectile::APlayerProjectile()
+{
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	bReplicates = true;
+	SetReplicateMovement(true);
+
+	ProjectileRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = ProjectileRoot;
+
+	//Definition for the Projectile Movement Component.
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	ProjectileMovementComponent->SetUpdatedComponent(ProjectileRoot);
+	// TODO: ...these should probably be set in the BP
+	ProjectileMovementComponent->InitialSpeed = 200.0f;
+	ProjectileMovementComponent->MaxSpeed = 1500.0f;
+	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+
+	DamageType = UDamageType::StaticClass();
+	Damage = 10.0f;
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		// Functional Sphere Collision Detection on Server
+		SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Component"));
+		SphereComponent->SetupAttachment(RootComponent);
+
+		SphereComponent->InitSphereRadius(15.5f);
+		SphereComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+		SphereComponent->SetGenerateOverlapEvents(true);
+
+		//Registering the Projectile Impact function on a Hit event.
+		SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &APlayerProjectile::OnProjectileImpact);
+	}
+	else
+	{
+		// Cosmetics on simulated proxies
+		if (ProjectileMesh)
+		{
+			ProjectileVisualComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Projectile Mesh Visual"));
+			ProjectileVisualComponent->SetupAttachment(RootComponent);
+			ProjectileVisualComponent->SetStaticMesh(ProjectileMesh);
+		}
+	}
+}
+
 
 //TODO: NEED TO FIGURE OUT BETTER SYSTEM TO ACCOUNT FOR PROJECTILE TYPE IGNORANCE
 void APlayerProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

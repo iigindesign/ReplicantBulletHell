@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -26,10 +24,16 @@ class REPLICANT_API AReplicantPlayerCharacter : public AReplicantCharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
 
-	UPROPERTY(EditAnywhere, Category = "Gameplay")
+	// ---------------------- Set in Blueprint to have the Projectile_BPs --------------------------
+
+	UPROPERTY(EditAnywhere, Category = Projectile)
 	TSubclassOf<class AReplicantProjectile> ProjectileClass;
 
-	UPROPERTY(EditAnywhere, Category = "Gameplay")
+	// TODO: this needs to be set in UE
+	UPROPERTY(EditAnywhere, Category = Projectile)
+	TSubclassOf<class AReplicantCosmeticProjectile> CosmeticProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = Gameplay)
 	TSubclassOf<class ABlastDeflectAbility> AbilityClass;
 
 public:
@@ -62,6 +66,13 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void HandleFire();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void HandleFireMulticast();
+
+	void SpawnCosmeticProjectile();
+
+	void SpawnProjectile();
+
 	/** Server function for spawning projectiles.*/
 	UFUNCTION(Server, Reliable)
 	void HandleAbility();
@@ -78,6 +89,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	float FireRate;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	float ProjectileSpawnVerticalOffset;
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	float ProjectileSpawnHorizontalOffset;
+
+
 	/** If true, you are in the process of firing projectiles. */
 	bool bIsFiringWeapon;
 
@@ -88,7 +105,7 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	/** Called for movement input */
-	void Move          (const FInputActionValue& Value);
+	void Move(const FInputActionValue& Value);
 
 	/** Function for beginning weapon fire.*/
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")

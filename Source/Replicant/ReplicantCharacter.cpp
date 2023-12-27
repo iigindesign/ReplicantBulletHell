@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "ReplicantCharacter.h"
 
 #include "Components/CapsuleComponent.h"
@@ -9,10 +7,6 @@
 
 #include "Components/StaticMeshComponent.h"
 
-
-
-//////////////////////////////////////////////////////////////////////////
-// AReplicantCharacter
 
 AReplicantCharacter::AReplicantCharacter()
 {
