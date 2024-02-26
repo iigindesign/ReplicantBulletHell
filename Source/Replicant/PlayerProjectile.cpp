@@ -7,58 +7,87 @@
 #include "Components/SphereComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Engine/EngineTypes.h"
 #include "AIProjectile.h"
 
+// Projectile spawned on server and simulated individually on each client
 
-// Sets default values
 APlayerProjectile::APlayerProjectile()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	bReplicates = true;
-	SetReplicateMovement(true);
+	bReplicates = false;
+	SetReplicateMovement(false);
 
 	ProjectileRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	RootComponent = ProjectileRoot;
 
-	//Definition for the Projectile Movement Component.
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovementComponent->SetUpdatedComponent(ProjectileRoot);
 	// TODO: ...these should probably be set in the BP
-	ProjectileMovementComponent->InitialSpeed = 200.0f;
-	ProjectileMovementComponent->MaxSpeed = 1500.0f;
+	ProjectileMovementComponent->InitialSpeed = 50.0f;
+	ProjectileMovementComponent->MaxSpeed = 50.0f;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
 	DamageType = UDamageType::StaticClass();
 	Damage = 10.0f;
 
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		// Functional Sphere Collision Detection on Server
-		SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Component"));
-		SphereComponent->SetupAttachment(RootComponent);
+	// Physical Component
+	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Component"));
+	SphereComponent->SetupAttachment(ProjectileRoot);
 
-		SphereComponent->InitSphereRadius(15.5f);
-		SphereComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-		SphereComponent->SetGenerateOverlapEvents(true);
+	SphereComponent->InitSphereRadius(15.5f);
+	SphereComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	SphereComponent->SetGenerateOverlapEvents(true);
 
-		//Registering the Projectile Impact function on a Hit event.
-		SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &APlayerProjectile::OnProjectileImpact);
-	}
-	else
-	{
-		// Cosmetics on simulated proxies
-		if (ProjectileMesh)
-		{
-			ProjectileVisualComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Projectile Mesh Visual"));
-			ProjectileVisualComponent->SetupAttachment(RootComponent);
-			ProjectileVisualComponent->SetStaticMesh(ProjectileMesh);
-		}
-	}
+	ProjectileVisualComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Projectile Mesh Visual"));
+	ProjectileVisualComponent->SetupAttachment(ProjectileRoot);
+
+	// TODO: commented out destruction to avoid dealing w collisions just yet
+	// SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &APlayerProjectile::OnProjectileImpact);
+
 }
 
+void APlayerProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void APlayerProjectile::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// FVector Location = GetActorLocation();
+
+	// Print the location to the screen
+	// GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Projectile is at: %s"), *Location.ToString()));
+}
+
+// TODO: ok so something is wrong with how we are setting the static mesh dynamically ...but given up on figuring out why it doesnt show...
+// Also the init speed is wrong.
+// OMG
+// 
+// the issue wasnt even with the dynamic additoin??????? i think it's with adding the static mesh FUCKk
+// 
+// wtFFFFF
+// 
+//void APlayerProjectile::BeginPlay()
+//{
+//	if (GetNetMode() == ENetMode::NM_Client)
+//	{
+//		if (ProjectileMesh)
+//		{
+//
+//			ProjectileVisualComponent = NewObject<UStaticMeshComponent>(this);
+//			ProjectileVisualComponent->RegisterComponent();
+//			ProjectileVisualComponent->AttachToComponent(ProjectileRoot, FAttachmentTransformRules::KeepWorldTransform);
+//			ProjectileVisualComponent->SetStaticMesh(ProjectileMesh);
+//			FString RoleText = FString::Printf(TEXT("mesh?...: %d"), bool(ProjectileVisualComponent->GetStaticMesh()));
+//			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, RoleText);
+//
+//		}
+//	}
+//}
 
 //TODO: NEED TO FIGURE OUT BETTER SYSTEM TO ACCOUNT FOR PROJECTILE TYPE IGNORANCE
 void APlayerProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

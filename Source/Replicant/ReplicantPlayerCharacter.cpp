@@ -13,9 +13,11 @@
 #include "EnhancedInputSubsystems.h"
 
 #include "ReplicantProjectile.h"
+#include "ReplicantNaiveProjectile.h"
 #include "ReplicantCosmeticProjectile.h"
 
 #include "Ability/BlastDeflectAbility.h"
+#include "GameFramework/PlayerState.h"
 
 AReplicantPlayerCharacter::AReplicantPlayerCharacter()
 {
@@ -70,11 +72,22 @@ void AReplicantPlayerCharacter::BeginPlay()
 	}
 }
 
-void AReplicantPlayerCharacter::HandleFire_Implementation()
+void AReplicantPlayerCharacter::Tick(float DeltaTime)
 {
-	// TODO: refactor out the spawn parameter logic to its own shared method with spawncosmetic?
-	// TODO: have the cosmetic and player projectile share an abstract projectile parent?
-	HandleFireMulticast();
+	Super::Tick(DeltaTime);
+
+	//APlayerController* controller = Cast<APlayerController>(Controller);
+	//if (controller)
+	//{
+	//	APlayerState* playerstate = controller->GetPlayerState<APlayerState>();
+	//	if (playerstate)
+	//	{
+	//		float ping = playerstate->GetPingInMilliseconds();
+	//		UE_LOG(LogTemp, Warning, TEXT("Ping: %d, Role: %d"), ping, GetLocalRole());
+	//	}
+	//}
+
+
 }
 
 void AReplicantPlayerCharacter::SpawnProjectile()
@@ -102,15 +115,45 @@ void AReplicantPlayerCharacter::SpawnCosmeticProjectile()
 	//Owner is the Controller  that spawned the instigator
 	spawnParameters.Owner = this;
 
+	AReplicantNaiveProjectile* spawnedNaiveProjectile = GetWorld()->SpawnActor<AReplicantNaiveProjectile>(NaiveProjectileClass, spawnLocation, spawnRotation, spawnParameters);
 	AReplicantCosmeticProjectile* spawnedProjectile = GetWorld()->SpawnActor<AReplicantCosmeticProjectile>(CosmeticProjectileClass, spawnLocation, spawnRotation, spawnParameters);
+}
+
+void AReplicantPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	// DOREPLIFETIME_CONDITION();
+}
+
+void AReplicantPlayerCharacter::HandleFire_Implementation()
+{
+	// AActor* owner = GetOwner();
+	// hmm ... even tho we are on server this actor should be client owned??
+	// check for owner here
+
+	// TODO: refactor out the spawn parameter logic to its own shared method with spawncosmetic?
+	// TODO: have the cosmetic and player projectile share an abstract projectile parent?
+	HandleFireMulticast();
+	///// HMMMMMMMMMMMM
+	//// simulate on the rest of the clients...? server event RPC?
+	/// a simple prediction for the other clients -> maybe start position etc. and then simulate locally
+	
 }
 
 void AReplicantPlayerCharacter::HandleFireMulticast_Implementation()
 {
+	// FIXME: FOUND THE PROBLEM...DONT NEED THE MULTICAST...
+	// only need to spawn on server and it would be auto replicated...
+	// if we use multicast then an instance is spawned for every client
+
+	// Multicast is mainly used for FX? ... instead of replicating properties that has to listen all the time
+	// COSMETIC ONLY.
+
 	if (GetLocalRole() == ROLE_AutonomousProxy) // Spawn for the server and all simulated proxies
 	{
 		return;
 	}
+
 	SpawnProjectile();
 }
 
@@ -200,19 +243,4 @@ void AReplicantPlayerCharacter::HandleAbility_Implementation()
 	spawnParameters.Owner = this;
 
 	ABlastDeflectAbility* spawnedAbility = GetWorld()->SpawnActor<ABlastDeflectAbility>(AbilityClass, spawnLocation, spawnRotation, spawnParameters);
-
 }
-
-//void AReplicantProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-//	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-//{
-//	if (OtherActor && OtherActor != this)
-//	{
-//		if (GetInstigator())
-//		{
-//			// This calls TakeDamage() on the actor it collided with
-//			UGameplayStatics::ApplyPointDamage(OtherActor, Damage, OtherActor->GetActorForwardVector(), SweepResult, GetInstigator()->Controller, this, DamageType);
-//		}
-//		Destroy();
-//	}
-//}

@@ -23,6 +23,7 @@ protected:
     UPROPERTY(EditAnywhere, Category = Cosmetic)
     class UStaticMesh* ProjectileMesh;
 
-
+    virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
 public:
 };

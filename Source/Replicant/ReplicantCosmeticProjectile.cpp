@@ -6,61 +6,86 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "GameFramework/PlayerState.h"
+
+// This projectile will only spawn for the client that fired - has inertia applied.
 
 AReplicantCosmeticProjectile::AReplicantCosmeticProjectile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// This projectile will only spawn for the client that fired - has inertia applied.
 	bReplicates = false;
-	SetReplicateMovement(true);
+	SetReplicateMovement(false);
 
 	ProjectileRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	RootComponent = ProjectileRoot;
 
 	// This handles the actual collisions
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Component"));
-	SphereComponent->SetupAttachment(RootComponent);
+	SphereComponent->SetupAttachment(ProjectileRoot);
 
 	//it'd be the best if there's some sort of ini or blueprint on the sizing etc. that both the functional and cosmetic projectile references
 	SphereComponent->InitSphereRadius(15.5f);
-	SphereComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	SphereComponent->SetGenerateOverlapEvents(true);
-
-	// Should this be called on every client? 
-	// FIXME: ALSO! I don't think our client can just send some cosmetics over to the other clients. I think we NEED to go through the server
-	// server will likely have to spawn the projectile on the other clients at a delay...
-	// The fact that we are setting bReplicates to true...when it's only called on the local client...dont think it would do anything...
-	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AReplicantCosmeticProjectile::OnProjectileImpact);
+	//SphereComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	SphereComponent->SetCollisionProfileName(TEXT("NoCollision"));
+	// SphereComponent->SetGenerateOverlapEvents(true);
+	// SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AReplicantCosmeticProjectile::OnProjectileImpact);
 	
-	//Definition for the Mesh that will serve as your visual representation.
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	StaticMesh->SetupAttachment(RootComponent);
+	StaticMesh->SetupAttachment(ProjectileRoot);
+	StaticMesh->SetCollisionProfileName(TEXT("NoCollision"));
 
-
-	//Definition for the Projectile Movement Component.
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Cosmetic Movement"));
 	ProjectileMovementComponent->SetUpdatedComponent(ProjectileRoot);
-	ProjectileMovementComponent->InitialSpeed = 200.0f;
-	ProjectileMovementComponent->MaxSpeed = 1500.0f;
+	
+	ProjectileSpeed = 50.0f;
+	MockLatency = 1100.0f;
+
+	const FRotator Rotation = ProjectileRoot->GetComponentRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	InertiaTotalTime = MockLatency/1000; //in s
+	InertiaElapsedTime = 0.0f;
+
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
 }
 
-// Called when the game starts or when spawned
 void AReplicantCosmeticProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	StartingLocation = GetActorLocation();
+	// This is the predicted location in 500ms after the user fires, at 250ms the position would be at 000 for server
+	PredictedLocation = GetActorLocation() + GetActorForwardVector() * ProjectileSpeed * MockLatency / 2 / 1000;
 }
 
-// Called every frame
-void AReplicantCosmeticProjectile::Tick(float DeltaTime)
+void AReplicantCosmeticProjectile::Tick(float DeltaSeconds)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaSeconds);
 
+	// If still inertia time (latency halved), interpolate to initial predicted position
+	if (InertiaElapsedTime < InertiaTotalTime)
+	{
+
+		float Alpha = FMath::Clamp(InertiaElapsedTime / InertiaTotalTime, 0.0f, 1.0f);
+		FVector NewPosition = FMath::Lerp(StartingLocation, PredictedLocation, Alpha); // Interpolate the position
+		UE_LOG(LogTemp, Warning, TEXT("Elapsed Time: %f; DeltaTime: %f; Alpha: %f; NewPosition: %s"), InertiaElapsedTime, DeltaSeconds, Alpha, *NewPosition.ToString());
+
+		SetActorLocation(NewPosition); // Set the new position
+	}
+	else if (!Interpolated)
+	{
+		Interpolated = true; // ensures the velocity is only set once
+		ProjectileMovementComponent->Velocity = GetActorForwardVector() * ProjectileSpeed;
+	}
+	InertiaElapsedTime += DeltaSeconds;
+	
+	float ping = Cast<APlayerController>(GetOwner()->GetInstigatorController())->PlayerState->GetPingInMilliseconds();
+
+	FString RoleText = FString::Printf(TEXT("Ping: %f"), ping);
+	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, RoleText);
+
+	//UE_LOG(LogTemp, Warning, TEXT("Ping: %d"), ping);
 }
 
 void AReplicantCosmeticProjectile::OnProjectileImpact(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

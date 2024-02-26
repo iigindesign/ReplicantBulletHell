@@ -29,9 +29,11 @@ class REPLICANT_API AReplicantPlayerCharacter : public AReplicantCharacter
 	UPROPERTY(EditAnywhere, Category = Projectile)
 	TSubclassOf<class AReplicantProjectile> ProjectileClass;
 
-	// TODO: this needs to be set in UE
 	UPROPERTY(EditAnywhere, Category = Projectile)
 	TSubclassOf<class AReplicantCosmeticProjectile> CosmeticProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = Projectile)
+	TSubclassOf<class AReplicantNaiveProjectile> NaiveProjectileClass;
 
 	UPROPERTY(EditAnywhere, Category = Gameplay)
 	TSubclassOf<class ABlastDeflectAbility> AbilityClass;
@@ -54,9 +56,11 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
-
+	virtual void Tick(float DeltaTime) override;
 	/** A timer handle used for providing the fire rate delay in-between spawns.*/
 	FTimerHandle FiringTimer;
 	/** A timer handle used for providing the fire rate delay in-between spawns.*/
